@@ -1,5 +1,5 @@
 # MoCap to Vision Pose Converter
-This package converts the pose of the drone received from MoCap to the frame of the EKF2 of the PX4 and publishes it on `\mavros/vision_pose/pose_cov` with the covariance set in the config file `config/config.yaml`.
+This package converts the pose of the drone received from MoCap to the frame of the EKF2 of the PX4 and publishes it on `/mavros/vision_pose/pose_cov` with the covariance set in the config file `config/config.yaml`. Make sure the drone's forward direction (x direction) is aligned with the optitrack's x direction when you turn on the drone.
 
 # Getting Started
 ## Create and build workspace
