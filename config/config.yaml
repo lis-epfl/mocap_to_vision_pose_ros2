@@ -1,0 +1,7 @@
+mocap_to_vision_pose_node: 
+  ros__parameters:
+    mocap_topic: "/optitrack_multiplexer_node/rigid_body/mavros"
+    frame_id: "base_link"
+    pos_var: 0.000001 # meters squared
+    att_var: 0.000001 # radians squared 
+    origin: [0.0, 0.0, 0.0] # used for ekf2 and home origin
