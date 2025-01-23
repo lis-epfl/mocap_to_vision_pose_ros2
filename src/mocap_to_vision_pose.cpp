@@ -36,7 +36,8 @@ MocapToVisionPose::MocapToVisionPose()
 }
 
 void MocapToVisionPose::DeclareRosParameters() {
-  declare_parameter("mocap_topic", "/optitrack_multiplexer_node/rigid_body/mavros");
+  declare_parameter("mocap_topic",
+                    "/optitrack_multiplexer_node/rigid_body/mavros");
   declare_parameter("frame_id", "base_link");
   declare_parameter("pos_var", 0.000001);
   declare_parameter("att_var", 0.000001);
@@ -53,7 +54,8 @@ void MocapToVisionPose::InitializeRosParameters() {
 
 void MocapToVisionPose::SetHomePosition() {
   // wait until the service is available
-  while (!command_home_client_->wait_for_service(std::chrono::seconds(2))) {
+  while (rclcpp::ok() &&
+         !command_home_client_->wait_for_service(std::chrono::seconds(2))) {
     RCLCPP_INFO(get_logger(), "Waiting for /mavros/cmd/set_home service...");
   }
 
@@ -100,9 +102,8 @@ void MocapToVisionPose::PublishGPOrigin() {
   gp_origin_pub_->publish(gp_origin_msg);
 
   // add a small delay to ensure the message is processed
-  RCLCPP_INFO(
-      get_logger(),
-      "Published EKF origin to /mavros/global_position/set_gp_origin");
+  RCLCPP_INFO(get_logger(),
+              "Published EKF origin to /mavros/global_position/set_gp_origin");
 }
 
 void MocapToVisionPose::MocapCallback(
