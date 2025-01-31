@@ -92,6 +92,8 @@ void MocapToVisionPose::SetHomePosition() {
     } else {
       RCLCPP_ERROR(get_logger(), "Service call timed out.");
     }
+
+    rclcpp::sleep_for(std::chrono::seconds(2));
   }
 }
 
