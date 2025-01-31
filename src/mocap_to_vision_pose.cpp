@@ -59,33 +59,39 @@ void MocapToVisionPose::SetHomePosition() {
     RCLCPP_INFO(get_logger(), "Waiting for /mavros/cmd/set_home service...");
   }
 
-  // prepare the request
-  auto request = std::make_shared<mavros_msgs::srv::CommandHome::Request>();
-  // set to true to use current GPS position
-  request->current_gps = false;
+  bool success = false;
+  while (rclcpp::ok() && !success) {
+    // prepare the request
+    auto request = std::make_shared<mavros_msgs::srv::CommandHome::Request>();
+    // set to true to use current GPS position
+    request->current_gps = false;
 
-  request->yaw = 0.0;
-  request->latitude = origin_[0];
-  request->longitude = origin_[1];
-  request->altitude = origin_[2];
+    request->yaw = 0.0;
+    request->latitude = origin_[0];
+    request->longitude = origin_[1];
+    request->altitude = origin_[2];
 
-  // asynchronous service call
-  auto result_future = command_home_client_->async_send_request(request);
+    // asynchronous service call
+    auto result_future = command_home_client_->async_send_request(request);
 
-  // handle the response
-  rclcpp::spin_until_future_complete(get_node_base_interface(), result_future);
-  if (result_future.wait_for(std::chrono::seconds(2)) ==
-      std::future_status::ready) {
-    auto response = result_future.get();
-    if (response->success) {
-      RCLCPP_INFO(get_logger(), "Successfully set home position: %d",
-                  response->result);
+    // handle the response
+    rclcpp::spin_until_future_complete(get_node_base_interface(),
+                                       result_future);
+    if (result_future.wait_for(std::chrono::seconds(2)) ==
+        std::future_status::ready) {
+      auto response = result_future.get();
+      if (response->success) {
+        RCLCPP_INFO(get_logger(), "Successfully set home position: %d",
+                    response->result);
+        success = true;
+      } else {
+        RCLCPP_ERROR(get_logger(),
+                     "Failed to set home position, retrying ...: %d",
+                     response->result);
+      }
     } else {
-      RCLCPP_ERROR(get_logger(), "Failed to set home position: %d",
-                   response->result);
+      RCLCPP_ERROR(get_logger(), "Service call timed out.");
     }
-  } else {
-    RCLCPP_ERROR(get_logger(), "Service call timed out.");
   }
 }
 
@@ -127,16 +133,16 @@ void MocapToVisionPose::MocapCallback(
 
   // transform the position
   transformed_pose_cov.pose.pose.position.x = msg->rigid_body.pose.position.x;
-  transformed_pose_cov.pose.pose.position.y = -msg->rigid_body.pose.position.y;
-  transformed_pose_cov.pose.pose.position.z = -msg->rigid_body.pose.position.z;
+  transformed_pose_cov.pose.pose.position.y = msg->rigid_body.pose.position.y;
+  transformed_pose_cov.pose.pose.position.z = msg->rigid_body.pose.position.z;
 
   // transform the orientation
   transformed_pose_cov.pose.pose.orientation.x =
       msg->rigid_body.pose.orientation.q_x;
   transformed_pose_cov.pose.pose.orientation.y =
-      -msg->rigid_body.pose.orientation.q_y;
+      msg->rigid_body.pose.orientation.q_y;
   transformed_pose_cov.pose.pose.orientation.z =
-      -msg->rigid_body.pose.orientation.q_z;
+      msg->rigid_body.pose.orientation.q_z;
   transformed_pose_cov.pose.pose.orientation.w =
       msg->rigid_body.pose.orientation.q_w;
 
