@@ -85,15 +85,15 @@ void MocapToVisionPose::SetHomePosition() {
                     response->result);
         success = true;
       } else {
-        RCLCPP_ERROR(get_logger(),
+        RCLCPP_INFO(get_logger(),
                      "Failed to set home position, retrying ...: %d",
                      response->result);
       }
     } else {
-      RCLCPP_ERROR(get_logger(), "Service call timed out.");
+      RCLCPP_INFO(get_logger(), "Service call timed out.");
     }
 
-    rclcpp::sleep_for(std::chrono::seconds(2));
+    rclcpp::sleep_for(std::chrono::seconds(1));
   }
 }
 
