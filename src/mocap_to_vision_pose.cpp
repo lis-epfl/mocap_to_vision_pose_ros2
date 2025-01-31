@@ -60,40 +60,35 @@ void MocapToVisionPose::SetHomePosition() {
   }
 
   bool success = false;
-  while (rclcpp::ok() && !success) {
-    // prepare the request
-    auto request = std::make_shared<mavros_msgs::srv::CommandHome::Request>();
-    // set to true to use current GPS position
-    request->current_gps = false;
+  // prepare the request
+  auto request = std::make_shared<mavros_msgs::srv::CommandHome::Request>();
+  // set to true to use current GPS position
+  request->current_gps = false;
 
-    request->yaw = 0.0;
-    request->latitude = origin_[0];
-    request->longitude = origin_[1];
-    request->altitude = origin_[2];
+  request->yaw = 0.0;
+  request->latitude = origin_[0];
+  request->longitude = origin_[1];
+  request->altitude = origin_[2];
 
-    // asynchronous service call
-    auto result_future = command_home_client_->async_send_request(request);
+  // asynchronous service call
+  auto result_future = command_home_client_->async_send_request(request);
 
-    // handle the response
-    rclcpp::spin_until_future_complete(get_node_base_interface(),
-                                       result_future);
-    if (result_future.wait_for(std::chrono::seconds(2)) ==
-        std::future_status::ready) {
-      auto response = result_future.get();
-      if (response->success) {
-        RCLCPP_INFO(get_logger(), "Successfully set home position: %d",
-                    response->result);
-        success = true;
-      } else {
-        RCLCPP_INFO(get_logger(),
-                     "Failed to set home position, retrying ...: %d",
-                     response->result);
-      }
+  // handle the response
+  rclcpp::spin_until_future_complete(get_node_base_interface(), result_future);
+  if (result_future.wait_for(std::chrono::seconds(2)) ==
+      std::future_status::ready) {
+    auto response = result_future.get();
+    if (response->success) {
+      RCLCPP_INFO(get_logger(), "Successfully set home position: %d",
+                  response->result);
     } else {
-      RCLCPP_INFO(get_logger(), "Service call timed out.");
+      RCLCPP_INFO(
+          get_logger(),
+          "Failed to set home position, try relaunching the launch file: %d",
+          response->result);
     }
-
-    rclcpp::sleep_for(std::chrono::seconds(1));
+  } else {
+    RCLCPP_INFO(get_logger(), "Service call timed out.");
   }
 }
 
