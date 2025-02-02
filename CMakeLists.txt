@@ -46,4 +46,9 @@ install(DIRECTORY include/
   DESTINATION include/
 )
 
+install(PROGRAMS
+  scripts/check_and_launch.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

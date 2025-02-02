@@ -82,13 +82,13 @@ void MocapToVisionPose::SetHomePosition() {
       RCLCPP_INFO(get_logger(), "Successfully set home position: %d",
                   response->result);
     } else {
-      RCLCPP_INFO(
+      RCLCPP_ERROR(
           get_logger(),
           "Failed to set home position, try relaunching the launch file: %d",
           response->result);
     }
   } else {
-    RCLCPP_INFO(get_logger(), "Service call timed out.");
+    RCLCPP_ERROR(get_logger(), "Service call timed out.");
   }
 }
 

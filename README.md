@@ -36,5 +36,7 @@ In another terminal, launch the pose converter:
 ``` shell script
 cd ~/ros2_ws
 . install/setup.bash
-ros2 launch mocap_to_vision_pose_ros2 mocap_to_vision_pose.launch.py
+ros2 run mocap_to_vision_pose_ros2 check_and_launch.py
 ```
+
+The `check_and_launch.py` script checks first that we set the gps position and the home position because sometime they are not set (for some speculative reason like congestion or queuing in communication). When both have been set, the pose converter launches.

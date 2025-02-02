@@ -16,6 +16,10 @@
   <depend>mavros_msgs</depend>
   <depend>optitrack_multiplexer_ros2_msgs</depend>
 
+  <exec_depend>rclpy</exec_depend>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
