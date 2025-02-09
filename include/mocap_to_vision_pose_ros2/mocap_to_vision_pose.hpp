@@ -1,3 +1,6 @@
+#ifndef MOCAP_TO_VISION_POSE_CLASS_H_
+#define MOCAP_TO_VISION_POSE_CLASS_H_
+
 #include "builtin_interfaces/msg/time.hpp"
 #include "geographic_msgs/msg/geo_point_stamped.hpp"
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
@@ -55,3 +58,5 @@ private:
 };
 
 } // namespace mocap_to_vision_pose
+
+#endif
