@@ -102,6 +102,7 @@ def main():
     if launch_process:
         launch_process.terminate()  # Terminate the launch process
     rclpy.shutdown()
+    exit(1)
 
 if __name__ == '__main__':
     main()
