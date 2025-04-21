@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import SingleThreadedExecutor
@@ -53,16 +54,23 @@ class TopicChecker(Node):
         self.gp_origin_received = False
         self.home_position_received = False
 
-def launch_mocap_to_vision_pose():
-    # Use subprocess to launch the file and keep it running
+def launch_mocap_to_vision_pose(namespace=None):
+    cmd = [
+        'ros2', 'launch', 'mocap_to_vision_pose_ros2', 'mocap_to_vision_pose.launch.py'
+    ]
+
+    if namespace:  # Only append if namespace is non-empty
+        cmd.append(f'namespace:={namespace}')
+
     process = subprocess.Popen(
-        ['ros2', 'launch', 'mocap_to_vision_pose_ros2', 'mocap_to_vision_pose.launch.py'],
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
     return process
 
 def main():
+    namespace = sys.argv[1] if len(sys.argv) > 1 else ''
     rclpy.init()
     executor = SingleThreadedExecutor()
     topic_checker = TopicChecker()
@@ -81,7 +89,7 @@ def main():
 
         # Launch the launch file
         print("Launching mocap_to_vision_pose.launch.py...")
-        launch_process = launch_mocap_to_vision_pose()
+        launch_process = launch_mocap_to_vision_pose(namespace)
 
         # Wait for 5 seconds to check for messages
         start_time = time.time()

@@ -39,4 +39,4 @@ cd ~/ros2_ws
 ros2 run mocap_to_vision_pose_ros2 check_and_launch.py
 ```
 
-The `check_and_launch.py` script checks first that we set the gps position and the home position because sometime they are not set (for some speculative reason like congestion or queuing in communication). When both have been set, the pose converter launches.
+The `check_and_launch.py` script checks first that we set the gps position and the home position because sometime they are not set (for some speculative reason like congestion or queuing in communication). When both have been set, the pose converter launches. You can add a namespace at the end of the command `ros2 run mocap_to_vision_pose_ros2 check_and_lanch.py my_namespace`. All topics/services that start with `/topic_name` will not have the namespace added to them where as if they start immediately with the name without backslash `topic_name`, the namespace is added to them (applies for subscription/publication topics and services).

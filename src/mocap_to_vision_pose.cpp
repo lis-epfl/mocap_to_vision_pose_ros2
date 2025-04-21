@@ -14,18 +14,18 @@ MocapToVisionPose::MocapToVisionPose()
   // create a client for the CommandHome service and set home position for the
   // safety features (return to home, geofence ...)
   command_home_client_ =
-      create_client<mavros_msgs::srv::CommandHome>("/mavros/cmd/set_home");
+      create_client<mavros_msgs::srv::CommandHome>("mavros/cmd/set_home");
   SetHomePosition();
 
   // create a publisher for the /mavros/global_position/set_gp_origin topic and
   // publish the origin for ekf2
   gp_origin_pub_ = create_publisher<geographic_msgs::msg::GeoPointStamped>(
-      "/mavros/global_position/set_gp_origin", 10);
+      "mavros/global_position/set_gp_origin", 10);
   PublishGPOrigin();
 
   // publisher to the mavros odometry input topic
   mavros_pub_ = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
-      "/mavros/vision_pose/pose_cov", 10);
+      "mavros/vision_pose/pose_cov", 10);
 
   // subscription to the mocap topic
   mocap_sub_ = create_subscription<
@@ -56,7 +56,7 @@ void MocapToVisionPose::SetHomePosition() {
   // wait until the service is available
   while (rclcpp::ok() &&
          !command_home_client_->wait_for_service(std::chrono::seconds(2))) {
-    RCLCPP_INFO(get_logger(), "Waiting for /mavros/cmd/set_home service...");
+    RCLCPP_INFO(get_logger(), "Waiting for mavros/cmd/set_home service...");
   }
 
   bool success = false;
@@ -106,7 +106,7 @@ void MocapToVisionPose::PublishGPOrigin() {
 
   // add a small delay to ensure the message is processed
   RCLCPP_INFO(get_logger(),
-              "Published EKF origin to /mavros/global_position/set_gp_origin");
+              "Published EKF origin to mavros/global_position/set_gp_origin");
 }
 
 void MocapToVisionPose::MocapCallback(
