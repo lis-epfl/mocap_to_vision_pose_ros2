@@ -15,13 +15,13 @@ def generate_launch_description():
         description='Namespace for the node'
     )
 
-    topic_name = DeclareLaunchArgument(
-        'topic_name',
+    mocap_topic = DeclareLaunchArgument(
+        'mocap_topic',
         default_value='/mocap_to_vision_pose',
         description='Topic name for the mocap to vision pose node'
     )
 
-    topic_name_str = LaunchConfiguration('topic_name')
+    mocap_topic_str = LaunchConfiguration('mocap_topic')
 
     # get config file path
     ld = LaunchDescription()
@@ -37,7 +37,7 @@ def generate_launch_description():
         executable='mocap_to_vision_pose_node',
         namespace=LaunchConfiguration('namespace'),
         name='mocap_to_vision_pose_node',
-        parameters=[config, {'topic_name': topic_name_str}],
+        parameters=[config, {'mocap_topic': mocap_topic_str}],
         # prefix=['xterm -fa default -fs 10 -e gdb -ex run --args'],
         output='screen',
         emulate_tty=True
@@ -45,7 +45,7 @@ def generate_launch_description():
 
     # add actions
     ld.add_action(namespace_arg)
-    ld.add_action(topic_name)
+    ld.add_action(mocap_topic)
     ld.add_action(mocap_to_vision_pose_node)
 
     return ld
