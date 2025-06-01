@@ -12,6 +12,7 @@ import subprocess
 from mavros_msgs.msg import HomePosition  # Correct message type for /mavros/home_position/home
 from geographic_msgs.msg import GeoPointStamped  # Correct message type for /mavros/global_position/gp_origin
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+import argparse
 
 # Define a QoS profile that matches the publisher's settings
 qos_profile = QoSProfile(
@@ -21,15 +22,16 @@ qos_profile = QoSProfile(
 )
 
 class TopicChecker(Node):
-    def __init__(self):
+    def __init__(self, ns=""):
         super().__init__('topic_checker')
         self.gp_origin_received = False
         self.home_position_received = False
+        self.ns = ns
 
         # Subscribe to /mavros/global_position/gp_origin (GeoPointStamped)
         self.gp_origin_sub = self.create_subscription(
             msg_type=GeoPointStamped,
-            topic='/mavros/global_position/gp_origin',
+            topic=f'{ns}/mavros/global_position/gp_origin',
             callback=self.gp_origin_callback,
             qos_profile=qos_profile
         )
@@ -37,30 +39,32 @@ class TopicChecker(Node):
         # Subscribe to /mavros/home_position/home (HomePosition)
         self.home_position_sub = self.create_subscription(
             msg_type=HomePosition,
-            topic='/mavros/home_position/home',
+            topic=f'{ns}/mavros/home_position/home',
             callback=self.home_position_callback,
             qos_profile=qos_profile
         )
 
     def gp_origin_callback(self, msg):
         self.gp_origin_received = True
-        self.get_logger().info("Received message on /mavros/global_position/gp_origin")
+        self.get_logger().info(f"Received message on {self.ns}/mavros/global_position/gp_origin")
 
     def home_position_callback(self, msg):
         self.home_position_received = True
-        self.get_logger().info("Received message on /mavros/home_position/home")
+        self.get_logger().info(f"Received message on {self.ns}/mavros/home_position/home")
 
     def reset_flags(self):
         self.gp_origin_received = False
         self.home_position_received = False
 
-def launch_mocap_to_vision_pose(namespace=None):
+def launch_mocap_to_vision_pose(namespace=None, mocap_topic=None):
     cmd = [
         'ros2', 'launch', 'mocap_to_vision_pose_ros2', 'mocap_to_vision_pose.launch.py'
     ]
 
     if namespace:  # Only append if namespace is non-empty
-        cmd.append(f'namespace:={namespace}')
+        cmd.append(f'namespace:="{namespace}"')
+    if mocap_topic:
+        cmd.append(f'mocap_topic:="{mocap_topic}"')
 
     process = subprocess.Popen(
         cmd,
@@ -70,7 +74,11 @@ def launch_mocap_to_vision_pose(namespace=None):
     return process
 
 def main():
-    namespace = sys.argv[1] if len(sys.argv) > 1 else ''
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--namespace", default="")
+    parser.add_argument("--mocap-topic", default="")
+    args = parser.parse_args()
+
     rclpy.init()
     executor = SingleThreadedExecutor()
     topic_checker = TopicChecker()
@@ -89,7 +97,7 @@ def main():
 
         # Launch the launch file
         print("Launching mocap_to_vision_pose.launch.py...")
-        launch_process = launch_mocap_to_vision_pose(namespace)
+        launch_process = launch_mocap_to_vision_pose(args.namespace, args.mocap_topic)
 
         # Wait for 5 seconds to check for messages
         start_time = time.time()
