@@ -115,6 +115,11 @@ void MocapToVisionPose::MocapCallback(
 
   auto transformed_pose_cov = geometry_msgs::msg::PoseWithCovarianceStamped();
 
+  if (!msg->rigid_body.tracking_valid) {
+    // do not publish an invalid message
+    return;
+  }
+
   // correct only for latency_ms
   double latency_seconds =
       static_cast<double>(msg->latency_ms) / 1000.0; // Convert ms to seconds
