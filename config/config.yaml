@@ -4,4 +4,4 @@ mocap_to_vision_pose_node:
     frame_id: "map"
     pos_var: 0.000001 # meters squared
     att_var: 0.000001 # radians squared 
-    origin: [0.0, 0.0, 0.0] # used for ekf2 and home origin
+    origin: [46.5194087, 6.5666820, 400.0] # Fake home, used to make px4 happy. We don't use it.
