@@ -75,7 +75,7 @@ def launch_mocap_to_vision_pose(namespace=None, mocap_topic=None):
     ]
 
     if namespace:  # Only append if namespace is non-empty
-        cmd.append(f'namespace:="{namespace}"')
+        cmd.append(f"namespace:={namespace}")
     if mocap_topic:
         cmd.append(f'mocap_topic:="{mocap_topic}"')
 
