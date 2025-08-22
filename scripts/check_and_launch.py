@@ -17,6 +17,7 @@ from geographic_msgs.msg import (
 )  # Correct message type for /mavros/global_position/gp_origin
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import argparse
+import threading
 
 # Define a QoS profile that matches the publisher's settings
 qos_profile = QoSProfile(
@@ -66,6 +67,11 @@ class TopicChecker(Node):
         self.home_position_received = False
 
 
+def stream_output(stream):
+    for line in iter(stream.readline, b""):
+        print(line.decode().strip())
+
+
 def launch_mocap_to_vision_pose(namespace=None, mocap_topic=None):
     cmd = [
         "ros2",
@@ -80,16 +86,16 @@ def launch_mocap_to_vision_pose(namespace=None, mocap_topic=None):
         cmd.append(f'mocap_topic:="{mocap_topic}"')
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return process
-
-
-def print_process_logs(process: subprocess.Popen):
     if process.stdout:
-        for line in process.stdout:
-            print(line.decode().strip())
+        threading.Thread(
+            target=stream_output, args=(process.stdout,), daemon=True
+        ).start()
     if process.stderr:
-        for line in process.stderr:
-            print(line.decode().strip())
+        threading.Thread(
+            target=stream_output, args=(process.stderr,), daemon=True
+        ).start()
+
+    return process
 
 
 def main():
@@ -121,7 +127,6 @@ def main():
         # Wait for 5 seconds to check for messages
         start_time = time.time()
         while time.time() - start_time < 5:
-            print_process_logs(launch_process)
             executor.spin_once(timeout_sec=0.1)
             if (
                 topic_checker.gp_origin_received
@@ -130,7 +135,6 @@ def main():
                 print("Both topics received messages. Keeping the launch file running.")
                 # Stop checking but keep the launch file running
                 while rclpy.ok():
-                    print_process_logs(launch_process)
                     pass  # Keep the node alive
                 return
 
