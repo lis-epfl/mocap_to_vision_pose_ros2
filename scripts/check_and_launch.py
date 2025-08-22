@@ -9,21 +9,26 @@ from launch import LaunchDescription
 from launch.actions import ExecuteProcess
 import time
 import subprocess
-from mavros_msgs.msg import HomePosition  # Correct message type for /mavros/home_position/home
-from geographic_msgs.msg import GeoPointStamped  # Correct message type for /mavros/global_position/gp_origin
+from mavros_msgs.msg import (
+    HomePosition,
+)  # Correct message type for /mavros/home_position/home
+from geographic_msgs.msg import (
+    GeoPointStamped,
+)  # Correct message type for /mavros/global_position/gp_origin
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import argparse
 
 # Define a QoS profile that matches the publisher's settings
 qos_profile = QoSProfile(
     reliability=QoSReliabilityPolicy.BEST_EFFORT,  # Match the publisher's reliability policy
-    history=QoSHistoryPolicy.KEEP_LAST,            # Keep the last N messages
-    depth=10                                       # Queue size
+    history=QoSHistoryPolicy.KEEP_LAST,  # Keep the last N messages
+    depth=10,  # Queue size
 )
+
 
 class TopicChecker(Node):
     def __init__(self, ns=""):
-        super().__init__('topic_checker')
+        super().__init__("topic_checker")
         self.gp_origin_received = False
         self.home_position_received = False
         self.ns = ns
@@ -31,34 +36,42 @@ class TopicChecker(Node):
         # Subscribe to /mavros/global_position/gp_origin (GeoPointStamped)
         self.gp_origin_sub = self.create_subscription(
             msg_type=GeoPointStamped,
-            topic=f'{ns}/mavros/global_position/gp_origin',
+            topic=f"{ns}/mavros/global_position/gp_origin",
             callback=self.gp_origin_callback,
-            qos_profile=qos_profile
+            qos_profile=qos_profile,
         )
 
         # Subscribe to /mavros/home_position/home (HomePosition)
         self.home_position_sub = self.create_subscription(
             msg_type=HomePosition,
-            topic=f'{ns}/mavros/home_position/home',
+            topic=f"{ns}/mavros/home_position/home",
             callback=self.home_position_callback,
-            qos_profile=qos_profile
+            qos_profile=qos_profile,
         )
 
     def gp_origin_callback(self, msg):
         self.gp_origin_received = True
-        self.get_logger().info(f"Received message on {self.ns}/mavros/global_position/gp_origin")
+        self.get_logger().info(
+            f"Received message on {self.ns}/mavros/global_position/gp_origin"
+        )
 
     def home_position_callback(self, msg):
         self.home_position_received = True
-        self.get_logger().info(f"Received message on {self.ns}/mavros/home_position/home")
+        self.get_logger().info(
+            f"Received message on {self.ns}/mavros/home_position/home"
+        )
 
     def reset_flags(self):
         self.gp_origin_received = False
         self.home_position_received = False
 
+
 def launch_mocap_to_vision_pose(namespace=None, mocap_topic=None):
     cmd = [
-        'ros2', 'launch', 'mocap_to_vision_pose_ros2', 'mocap_to_vision_pose.launch.py'
+        "ros2",
+        "launch",
+        "mocap_to_vision_pose_ros2",
+        "mocap_to_vision_pose.launch.py",
     ]
 
     if namespace:  # Only append if namespace is non-empty
@@ -66,12 +79,18 @@ def launch_mocap_to_vision_pose(namespace=None, mocap_topic=None):
     if mocap_topic:
         cmd.append(f'mocap_topic:="{mocap_topic}"')
 
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return process
+
+
+def print_process_logs(process: subprocess.Popen):
+    if process.stdout:
+        for line in process.stdout:
+            print(line.decode().strip())
+    if process.stderr:
+        for line in process.stderr:
+            print(line.decode().strip())
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -102,11 +121,16 @@ def main():
         # Wait for 5 seconds to check for messages
         start_time = time.time()
         while time.time() - start_time < 5:
+            print_process_logs(launch_process)
             executor.spin_once(timeout_sec=0.1)
-            if topic_checker.gp_origin_received and topic_checker.home_position_received:
+            if (
+                topic_checker.gp_origin_received
+                and topic_checker.home_position_received
+            ):
                 print("Both topics received messages. Keeping the launch file running.")
                 # Stop checking but keep the launch file running
                 while rclpy.ok():
+                    print_process_logs(launch_process)
                     pass  # Keep the node alive
                 return
 
@@ -120,5 +144,6 @@ def main():
     rclpy.shutdown()
     exit(1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
