@@ -106,7 +106,7 @@ def main():
 
     rclpy.init()
     executor = SingleThreadedExecutor()
-    topic_checker = TopicChecker()
+    topic_checker = TopicChecker(args.namespace)
     executor.add_node(topic_checker)
 
     max_attempts = 10
