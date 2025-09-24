@@ -42,6 +42,7 @@ void MocapToVisionPose::DeclareRosParameters() {
   declare_parameter("pos_var", 0.000001);
   declare_parameter("att_var", 0.000001);
   declare_parameter("origin", ::std::vector<double>(3, 0.0));
+  declare_parameter("use_current_gps_for_home", false);
 }
 
 void MocapToVisionPose::InitializeRosParameters() {
@@ -50,6 +51,7 @@ void MocapToVisionPose::InitializeRosParameters() {
   pos_var_ = get_parameter("pos_var").as_double();
   att_var_ = get_parameter("att_var").as_double();
   origin_ = get_parameter("origin").as_double_array();
+  use_current_gps_for_home_ = get_parameter("use_current_gps_for_home").as_bool();
 }
 
 void MocapToVisionPose::SetHomePosition() {
@@ -62,13 +64,37 @@ void MocapToVisionPose::SetHomePosition() {
   bool success = false;
   // prepare the request
   auto request = std::make_shared<mavros_msgs::srv::CommandHome::Request>();
-  // set to true to use current GPS position
-  request->current_gps = false;
+  // Use current GPS position if parameter is set, otherwise use manual coordinates
+  request->current_gps = use_current_gps_for_home_;
 
-  request->yaw = 0.0;
-  request->latitude = origin_[0];
-  request->longitude = origin_[1];
-  request->altitude = origin_[2];
+  if (use_current_gps_for_home_) {
+    RCLCPP_INFO(get_logger(), "Using current GPS position for home (avoids geoid height issues)");
+    // When using current GPS, lat/lon/alt values are ignored by MAVROS
+    request->yaw = 0.0;
+    request->latitude = 0.0;
+    request->longitude = 0.0;
+    request->altitude = 0.0;
+  } else {
+    request->yaw = 0.0;
+    request->latitude = origin_[0];
+    request->longitude = origin_[1];
+    request->altitude = origin_[2];
+
+    // Add debugging information to trace where the z=17 height might come from
+    RCLCPP_INFO(get_logger(), 
+                "Setting home position - Lat: %.8f, Lon: %.8f, Alt: %.2f", 
+                request->latitude, request->longitude, request->altitude);
+    
+    // IMPORTANT: The z height of ~17m that sometimes appears is likely due to geoid height offset.
+    // When altitude is set to 0 (WGS84 ellipsoid), PX4/MAVLink converts it to AMSL (Above Mean Sea Level)
+    // using the local geoid height, which can be 15-20m in many locations.
+    // To avoid this issue, consider setting the altitude to the negative geoid height for your location,
+    // or use current_gps = true to use the actual GPS altitude reading.
+    RCLCPP_WARN_ONCE(get_logger(), 
+                     "If you observe ~17m altitude offset, this is likely due to geoid height conversion. "
+                     "Consider adjusting the origin altitude parameter to compensate for local geoid height, "
+                     "or set use_current_gps_for_home to true.");
+  }
 
   // asynchronous service call
   auto result_future = command_home_client_->async_send_request(request);

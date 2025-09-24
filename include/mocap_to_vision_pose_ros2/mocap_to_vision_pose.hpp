@@ -44,6 +44,8 @@ private:
   double att_var_;
   // origin for the ekf2 and for home
   std::vector<double> origin_;
+  // option to use current GPS position for home instead of manual coordinates
+  bool use_current_gps_for_home_;
   // subscriber to the mocap data
   rclcpp::Subscription<optitrack_multiplexer_ros2_msgs::msg::RigidBodyStamped>::
       SharedPtr mocap_sub_;

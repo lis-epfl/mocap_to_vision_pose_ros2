@@ -40,3 +40,23 @@ ros2 run mocap_to_vision_pose_ros2 check_and_launch.py
 ```
 
 The `check_and_launch.py` script checks first that we set the gps position and the home position because sometime they are not set (for some speculative reason like congestion or queuing in communication). When both have been set, the pose converter launches. You can add a namespace at the end of the command `ros2 run mocap_to_vision_pose_ros2 check_and_lanch.py my_namespace`. All topics/services that start with `/topic_name` will not have the namespace added to them where as if they start immediately with the name without backslash `topic_name`, the namespace is added to them (applies for subscription/publication topics and services).
+
+## Troubleshooting
+
+### Z Height Offset Issue (~17m altitude)
+
+If you observe that the home position is set with an unexpected z height of approximately 17 meters (or another consistent offset), this is likely due to **geoid height conversion**. When you set GPS coordinates with altitude 0 (relative to WGS84 ellipsoid), PX4/MAVLink automatically converts this to altitude Above Mean Sea Level (AMSL) using the local geoid height.
+
+**Solutions:**
+
+1. **Compensate for geoid height**: Set the `origin` altitude parameter in `config/config.yaml` to the negative geoid height for your location:
+   ```yaml
+   origin: [0.0, 0.0, -17.0]  # If local geoid height is +17m
+   ```
+
+2. **Use current GPS position**: Set `use_current_gps_for_home: true` in `config/config.yaml` to use the actual GPS altitude reading instead of manual coordinates:
+   ```yaml
+   use_current_gps_for_home: true
+   ```
+
+You can find the geoid height for your location using tools like the [NOAA Geoid Height Calculator](https://www.ngs.noaa.gov/GEOID/) or similar online tools.

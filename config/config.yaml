@@ -4,4 +4,12 @@ mocap_to_vision_pose_node:
     frame_id: "map"
     pos_var: 0.000001 # meters squared
     att_var: 0.000001 # radians squared 
-    origin: [0.0, 0.0, 0.0] # used for ekf2 and home origin
+    # Origin coordinates for EKF2 and home position [latitude, longitude, altitude]
+    # NOTE: If you observe ~17m altitude offset in home position, this is likely due to 
+    # geoid height conversion from WGS84 ellipsoid to AMSL (Above Mean Sea Level).
+    # To compensate, set altitude to the negative geoid height for your location.
+    # For example, if local geoid height is +17m, set altitude to -17.0
+    origin: [0.0, 0.0, 0.0] # [degrees, degrees, meters AMSL]
+    # Alternative solution: Use current GPS position for home instead of manual coordinates
+    # This avoids geoid height issues by using the actual GPS altitude reading
+    use_current_gps_for_home: false
