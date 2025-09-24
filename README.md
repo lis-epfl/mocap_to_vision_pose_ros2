@@ -39,6 +39,11 @@ cd ~/ros2_ws
 ros2 run mocap_to_vision_pose_ros2 check_and_launch.py
 ```
 
+If you have disabled home position (`enable_home_position: false`), use:
+``` shell script
+ros2 run mocap_to_vision_pose_ros2 check_and_launch.py '' --skip-home-position
+```
+
 The `check_and_launch.py` script checks first that we set the gps position and the home position because sometime they are not set (for some speculative reason like congestion or queuing in communication). When both have been set, the pose converter launches. You can add a namespace at the end of the command `ros2 run mocap_to_vision_pose_ros2 check_and_lanch.py my_namespace`. All topics/services that start with `/topic_name` will not have the namespace added to them where as if they start immediately with the name without backslash `topic_name`, the namespace is added to them (applies for subscription/publication topics and services).
 
 ## Troubleshooting
@@ -47,16 +52,26 @@ The `check_and_launch.py` script checks first that we set the gps position and t
 
 If you observe that the home position is set with an unexpected z height of approximately 17 meters (or another consistent offset), this is likely due to **geoid height conversion**. When you set GPS coordinates with altitude 0 (relative to WGS84 ellipsoid), PX4/MAVLink automatically converts this to altitude Above Mean Sea Level (AMSL) using the local geoid height.
 
-**Solutions:**
+**Solutions (choose one):**
 
-1. **Compensate for geoid height**: Set the `origin` altitude parameter in `config/config.yaml` to the negative geoid height for your location:
+1. **Disable home position entirely** (recommended for indoor MoCap flights):
    ```yaml
-   origin: [0.0, 0.0, -17.0]  # If local geoid height is +17m
+   enable_home_position: false
    ```
+   This disables safety features like Return-to-Home and geofence, but completely avoids the altitude issue. Suitable for controlled indoor environments where GPS-based safety features are not needed.
 
-2. **Use current GPS position**: Set `use_current_gps_for_home: true` in `config/config.yaml` to use the actual GPS altitude reading instead of manual coordinates:
+2. **Use current GPS position**:
    ```yaml
+   enable_home_position: true
    use_current_gps_for_home: true
+   ```
+   Uses the actual GPS altitude reading instead of manual coordinates, avoiding geoid height conversion.
+
+3. **Compensate for geoid height manually**:
+   ```yaml
+   enable_home_position: true
+   use_current_gps_for_home: false
+   origin: [0.0, 0.0, -17.0]  # If local geoid height is +17m
    ```
 
 You can find the geoid height for your location using tools like the [NOAA Geoid Height Calculator](https://www.ngs.noaa.gov/GEOID/) or similar online tools.

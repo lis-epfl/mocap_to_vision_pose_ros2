@@ -10,6 +10,12 @@ mocap_to_vision_pose_node:
     # To compensate, set altitude to the negative geoid height for your location.
     # For example, if local geoid height is +17m, set altitude to -17.0
     origin: [0.0, 0.0, 0.0] # [degrees, degrees, meters AMSL]
-    # Alternative solution: Use current GPS position for home instead of manual coordinates
-    # This avoids geoid height issues by using the actual GPS altitude reading
+    
+    # Home position configuration options:
+    # Option 1: Disable home position entirely (recommended for indoor MoCap flights)
+    # Disables safety features like Return-to-Home and geofence, but avoids altitude issues
+    enable_home_position: true
+    
+    # Option 2: Use current GPS position for home instead of manual coordinates
+    # This avoids geoid height issues by using actual GPS altitude reading
     use_current_gps_for_home: false

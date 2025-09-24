@@ -71,6 +71,9 @@ def launch_mocap_to_vision_pose(namespace=None):
 
 def main():
     namespace = sys.argv[1] if len(sys.argv) > 1 else ''
+    # Check if we should skip home position requirement (for when home position is disabled)
+    skip_home_position = len(sys.argv) > 2 and sys.argv[2] == '--skip-home-position'
+    
     rclpy.init()
     executor = SingleThreadedExecutor()
     topic_checker = TopicChecker()
@@ -95,14 +98,28 @@ def main():
         start_time = time.time()
         while time.time() - start_time < 5:
             executor.spin_once(timeout_sec=0.1)
-            if topic_checker.gp_origin_received and topic_checker.home_position_received:
-                print("Both topics received messages. Keeping the launch file running.")
-                # Stop checking but keep the launch file running
-                while rclpy.ok():
-                    pass  # Keep the node alive
-                return
+            # Check conditions based on whether home position is required
+            if skip_home_position:
+                # Only require gp_origin when home position is disabled
+                if topic_checker.gp_origin_received:
+                    print("GP origin received (home position disabled). Keeping the launch file running.")
+                    # Stop checking but keep the launch file running
+                    while rclpy.ok():
+                        pass  # Keep the node alive
+                    return
+            else:
+                # Require both topics when home position is enabled
+                if topic_checker.gp_origin_received and topic_checker.home_position_received:
+                    print("Both topics received messages. Keeping the launch file running.")
+                    # Stop checking but keep the launch file running
+                    while rclpy.ok():
+                        pass  # Keep the node alive
+                    return
 
-        print("No messages received on both topics within 5 seconds. Relaunching...")
+        if skip_home_position:
+            print("No GP origin message received within 5 seconds. Relaunching...")
+        else:
+            print("No messages received on both topics within 5 seconds. Relaunching...")
         if launch_process:
             launch_process.terminate()  # Terminate the previous launch process
 

@@ -12,10 +12,14 @@ MocapToVisionPose::MocapToVisionPose()
   InitializeRosParameters();
 
   // create a client for the CommandHome service and set home position for the
-  // safety features (return to home, geofence ...)
-  command_home_client_ =
-      create_client<mavros_msgs::srv::CommandHome>("mavros/cmd/set_home");
-  SetHomePosition();
+  // safety features (return to home, geofence ...) - can be disabled if not needed
+  if (enable_home_position_) {
+    command_home_client_ =
+        create_client<mavros_msgs::srv::CommandHome>("mavros/cmd/set_home");
+    SetHomePosition();
+  } else {
+    RCLCPP_INFO(get_logger(), "Home position setting disabled - safety features like RTH and geofence will not be available");
+  }
 
   // create a publisher for the /mavros/global_position/set_gp_origin topic and
   // publish the origin for ekf2
@@ -43,6 +47,7 @@ void MocapToVisionPose::DeclareRosParameters() {
   declare_parameter("att_var", 0.000001);
   declare_parameter("origin", ::std::vector<double>(3, 0.0));
   declare_parameter("use_current_gps_for_home", false);
+  declare_parameter("enable_home_position", true);
 }
 
 void MocapToVisionPose::InitializeRosParameters() {
@@ -52,6 +57,7 @@ void MocapToVisionPose::InitializeRosParameters() {
   att_var_ = get_parameter("att_var").as_double();
   origin_ = get_parameter("origin").as_double_array();
   use_current_gps_for_home_ = get_parameter("use_current_gps_for_home").as_bool();
+  enable_home_position_ = get_parameter("enable_home_position").as_bool();
 }
 
 void MocapToVisionPose::SetHomePosition() {

@@ -46,6 +46,8 @@ private:
   std::vector<double> origin_;
   // option to use current GPS position for home instead of manual coordinates
   bool use_current_gps_for_home_;
+  // option to disable home position setting entirely
+  bool enable_home_position_;
   // subscriber to the mocap data
   rclcpp::Subscription<optitrack_multiplexer_ros2_msgs::msg::RigidBodyStamped>::
       SharedPtr mocap_sub_;
