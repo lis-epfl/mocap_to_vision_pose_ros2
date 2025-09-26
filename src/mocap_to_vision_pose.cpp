@@ -4,18 +4,11 @@ namespace mocap_to_vision_pose {
 
 MocapToVisionPose::MocapToVisionPose()
     : rclcpp::Node("mocap_to_vision_pose_node") {
-
   // declare environment parameters
   DeclareRosParameters();
 
   // initialize parameters
   InitializeRosParameters();
-
-  // create a client for the CommandHome service and set home position for the
-  // safety features (return to home, geofence ...)
-  command_home_client_ =
-      create_client<mavros_msgs::srv::CommandHome>("mavros/cmd/set_home");
-  SetHomePosition();
 
   // create a publisher for the /mavros/global_position/set_gp_origin topic and
   // publish the origin for ekf2
@@ -52,46 +45,6 @@ void MocapToVisionPose::InitializeRosParameters() {
   origin_ = get_parameter("origin").as_double_array();
 }
 
-void MocapToVisionPose::SetHomePosition() {
-  // wait until the service is available
-  while (rclcpp::ok() &&
-         !command_home_client_->wait_for_service(std::chrono::seconds(2))) {
-    RCLCPP_INFO(get_logger(), "Waiting for mavros/cmd/set_home service...");
-  }
-
-  bool success = false;
-  // prepare the request
-  auto request = std::make_shared<mavros_msgs::srv::CommandHome::Request>();
-  // set to true to use current GPS position
-  request->current_gps = false;
-
-  request->yaw = 0.0;
-  request->latitude = origin_[0];
-  request->longitude = origin_[1];
-  request->altitude = origin_[2];
-
-  // asynchronous service call
-  auto result_future = command_home_client_->async_send_request(request);
-
-  // handle the response
-  rclcpp::spin_until_future_complete(get_node_base_interface(), result_future);
-  if (result_future.wait_for(std::chrono::seconds(2)) ==
-      std::future_status::ready) {
-    auto response = result_future.get();
-    if (response->success) {
-      RCLCPP_INFO(get_logger(), "Successfully set home position: %d",
-                  response->result);
-    } else {
-      RCLCPP_ERROR(
-          get_logger(),
-          "Failed to set home position, try relaunching the launch file: %d",
-          response->result);
-    }
-  } else {
-    RCLCPP_ERROR(get_logger(), "Service call timed out.");
-  }
-}
-
 void MocapToVisionPose::PublishGPOrigin() {
   // Publish the EKF origin
   auto gp_origin_msg = geographic_msgs::msg::GeoPointStamped();
@@ -112,12 +65,11 @@ void MocapToVisionPose::PublishGPOrigin() {
 void MocapToVisionPose::MocapCallback(
     const optitrack_multiplexer_ros2_msgs::msg::RigidBodyStamped::SharedPtr
         msg) {
-
   auto transformed_pose_cov = geometry_msgs::msg::PoseWithCovarianceStamped();
 
   // correct only for latency_ms
   double latency_seconds =
-      static_cast<double>(msg->latency_ms) / 1000.0; // Convert ms to seconds
+      static_cast<double>(msg->latency_ms) / 1000.0;  // Convert ms to seconds
   rclcpp::Time corrected_stamp =
       rclcpp::Time(msg->stamp) -
       rclcpp::Duration::from_seconds(latency_seconds);
@@ -145,19 +97,19 @@ void MocapToVisionPose::MocapCallback(
 
   // set covariance (position and orientation)
   std::vector<double> covariance(
-      36, 0.0); // 6x6 covariance matrix initialized to zero
+      36, 0.0);  // 6x6 covariance matrix initialized to zero
 
   // set position covariance (assuming 1 cm position noise)
   double position_noise =
-      0.01; // Example position noise in meters (standard deviation)
-  covariance[0] = pos_var_;  // x-x covariance
-  covariance[7] = pos_var_;  // y-y covariance
-  covariance[14] = pos_var_; // z-z covariance
+      0.01;  // Example position noise in meters (standard deviation)
+  covariance[0] = pos_var_;   // x-x covariance
+  covariance[7] = pos_var_;   // y-y covariance
+  covariance[14] = pos_var_;  // z-z covariance
 
   // set orientation covariance (radian noise)
-  covariance[21] = att_var_; // qx-qx covariance
-  covariance[28] = att_var_; // qy-qy covariance
-  covariance[35] = att_var_; // qz-qz covariance
+  covariance[21] = att_var_;  // qx-qx covariance
+  covariance[28] = att_var_;  // qy-qy covariance
+  covariance[35] = att_var_;  // qz-qz covariance
 
   std::copy(covariance.begin(), covariance.end(),
             transformed_pose_cov.pose.covariance.begin());
@@ -165,4 +117,4 @@ void MocapToVisionPose::MocapCallback(
   // publish the transformed pose
   mavros_pub_->publish(transformed_pose_cov);
 }
-} // namespace mocap_to_vision_pose
+}  // namespace mocap_to_vision_pose

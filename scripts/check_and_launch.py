@@ -31,7 +31,6 @@ class TopicChecker(Node):
     def __init__(self, ns=""):
         super().__init__("topic_checker")
         self.gp_origin_received = False
-        self.home_position_received = False
         self.ns = ns
 
         # Subscribe to /mavros/global_position/gp_origin (GeoPointStamped)
@@ -42,24 +41,10 @@ class TopicChecker(Node):
             qos_profile=qos_profile,
         )
 
-        # Subscribe to /mavros/home_position/home (HomePosition)
-        self.home_position_sub = self.create_subscription(
-            msg_type=HomePosition,
-            topic=f"{ns}/mavros/home_position/home",
-            callback=self.home_position_callback,
-            qos_profile=qos_profile,
-        )
-
     def gp_origin_callback(self, msg):
         self.gp_origin_received = True
         self.get_logger().info(
             f"Received message on {self.ns}/mavros/global_position/gp_origin"
-        )
-
-    def home_position_callback(self, msg):
-        self.home_position_received = True
-        self.get_logger().info(
-            f"Received message on {self.ns}/mavros/home_position/home"
         )
 
     def reset_flags(self):
@@ -128,17 +113,14 @@ def main():
         start_time = time.time()
         while time.time() - start_time < 5:
             executor.spin_once(timeout_sec=0.1)
-            if (
-                topic_checker.gp_origin_received
-                and topic_checker.home_position_received
-            ):
-                print("Both topics received messages. Keeping the launch file running.")
+            if topic_checker.gp_origin_received:
+                print("Topic received messages. Keeping the launch file running.")
                 # Stop checking but keep the launch file running
                 while rclpy.ok():
                     pass  # Keep the node alive
                 return
 
-        print("No messages received on both topics within 5 seconds. Relaunching...")
+        print("No messages received on topic within 5 seconds. Relaunching...")
         if launch_process:
             launch_process.terminate()  # Terminate the previous launch process
 

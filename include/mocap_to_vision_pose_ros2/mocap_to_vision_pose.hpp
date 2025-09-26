@@ -11,20 +11,17 @@
 namespace mocap_to_vision_pose {
 
 class MocapToVisionPose : public rclcpp::Node {
-public:
+ public:
   // constructor
   MocapToVisionPose();
 
-private:
+ private:
   /*-------------- methods ---------------*/
   // declare ros parameters
   void DeclareRosParameters();
 
   // initialize ros parameters
   void InitializeRosParameters();
-
-  // set home position
-  void SetHomePosition();
 
   // publish gp origin
   void PublishGPOrigin();
@@ -50,13 +47,11 @@ private:
   // publisher to the mavros topic
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
       mavros_pub_;
-  // client to set the home position
-  rclcpp::Client<mavros_msgs::srv::CommandHome>::SharedPtr command_home_client_;
   // publisher to set the gp origin
   rclcpp::Publisher<geographic_msgs::msg::GeoPointStamped>::SharedPtr
       gp_origin_pub_;
 };
 
-} // namespace mocap_to_vision_pose
+}  // namespace mocap_to_vision_pose
 
 #endif
