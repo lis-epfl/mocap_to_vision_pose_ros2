@@ -10,13 +10,10 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
-  <depend>geometry_msgs</depend>
   <depend>builtin_interfaces</depend>
-  <depend>geographic_msgs</depend>
-  <depend>mavros_msgs</depend>
+  <depend>px4_msgs</depend>
+  <depend>px4_ros2</depend>
   <depend>optitrack_multiplexer_ros2_msgs</depend>
-
-  <exec_depend>rclpy</exec_depend>
 
   <buildtool_depend>ament_python</buildtool_depend>
 

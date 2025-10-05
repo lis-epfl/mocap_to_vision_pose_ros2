@@ -7,18 +7,16 @@ add_compile_options(-O3)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
-find_package(geographic_msgs REQUIRED)
-find_package(mavros_msgs REQUIRED)
+find_package(px4_msgs REQUIRED)
+find_package(px4_ros2 REQUIRED)
 find_package(optitrack_multiplexer_ros2_msgs REQUIRED)
 
 set(DEPENDENCIES
   rclcpp
-  geometry_msgs
   builtin_interfaces
-  geometry_msgs
-  mavros_msgs
+  px4_msgs
+  px4_ros2
   optitrack_multiplexer_ros2_msgs)
 
 add_library(mocap_to_vision_pose src/mocap_to_vision_pose.cpp)
@@ -46,9 +44,5 @@ install(DIRECTORY include/
   DESTINATION include/
 )
 
-install(PROGRAMS
-  scripts/check_and_launch.py
-  DESTINATION lib/${PROJECT_NAME}
-)
 
 ament_package()
