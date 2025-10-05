@@ -9,14 +9,14 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(px4_msgs REQUIRED)
-find_package(px4_ros2 REQUIRED)
+find_package(px4_ros2_cpp REQUIRED)
 find_package(optitrack_multiplexer_ros2_msgs REQUIRED)
 
 set(DEPENDENCIES
   rclcpp
   builtin_interfaces
   px4_msgs
-  px4_ros2
+  px4_ros2_cpp
   optitrack_multiplexer_ros2_msgs)
 
 add_library(mocap_to_vision_pose src/mocap_to_vision_pose.cpp)
