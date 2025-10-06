@@ -4,8 +4,8 @@
 #include "builtin_interfaces/msg/time.hpp"
 #include "optitrack_multiplexer_ros2_msgs/msg/rigid_body_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include <px4_ros2/navigation/local_position_measurement_interface.hpp>
-
+#include <px4_ros2/navigation/experimental/local_position_measurement_interface.hpp>
+#include <Eigen/Dense>
 namespace mocap_to_vision_pose {
 
 class MocapToVisionPose : public rclcpp::Node {
@@ -31,9 +31,9 @@ private:
   // frame in which to send the coordinates (header.frame_id)
   std::string frame_id_;
   // position variance
-  double pos_var_;
+  Eigen::Vector2f pos_var_;
   // attitude variance (radians for quaternions)
-  double att_var_;
+  Eigen::Vector3f att_var_;
   // subscriber to the mocap data
   rclcpp::Subscription<optitrack_multiplexer_ros2_msgs::msg::RigidBodyStamped>::
       SharedPtr mocap_sub_;

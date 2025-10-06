@@ -11,6 +11,7 @@ find_package(builtin_interfaces REQUIRED)
 find_package(px4_msgs REQUIRED)
 find_package(px4_ros2_cpp REQUIRED)
 find_package(optitrack_multiplexer_ros2_msgs REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 set(DEPENDENCIES
   rclcpp
@@ -21,11 +22,11 @@ set(DEPENDENCIES
 
 add_library(mocap_to_vision_pose src/mocap_to_vision_pose.cpp)
 target_include_directories(mocap_to_vision_pose PUBLIC include/mocap_to_vision_pose_ros2)
+target_link_libraries(mocap_to_vision_pose Eigen3::Eigen)
 ament_target_dependencies(mocap_to_vision_pose ${DEPENDENCIES})
 
 add_executable(mocap_to_vision_pose_node src/mocap_to_vision_pose_node.cpp)
 target_link_libraries(mocap_to_vision_pose_node mocap_to_vision_pose)
-
 install(DIRECTORY
   launch
   config

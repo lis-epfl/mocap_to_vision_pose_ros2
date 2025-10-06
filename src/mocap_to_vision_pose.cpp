@@ -43,8 +43,10 @@ void MocapToVisionPose::DeclareRosParameters() {
 void MocapToVisionPose::InitializeRosParameters() {
   mocap_topic_ = get_parameter("mocap_topic").as_string();
   frame_id_ = get_parameter("frame_id").as_string();
-  pos_var_ = get_parameter("pos_var").as_double();
-  att_var_ = get_parameter("att_var").as_double();
+  auto pos_var = get_parameter("pos_var").as_double();
+  pos_var_ = Eigen::Vector2f::Constant(pos_var);
+  auto att_var = get_parameter("att_var").as_double();
+  att_var_ = Eigen::Vector3f::Constant(att_var);
 }
 
 void MocapToVisionPose::MocapCallback(
@@ -75,7 +77,7 @@ void MocapToVisionPose::MocapCallback(
 
   // set position variance (same for all axes)
   measurement.position_xy_variance = pos_var_;
-  measurement.position_z_variance = pos_var_;
+  measurement.position_z_variance = pos_var_(0); // assuming everything is the same
 
   // set orientation (quaternion)
   measurement.attitude_quaternion =
