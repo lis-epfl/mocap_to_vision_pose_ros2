@@ -48,6 +48,7 @@ void MocapToVisionPose::InitializeRosParameters() {
 void MocapToVisionPose::MocapCallback(
     const optitrack_multiplexer_ros2_msgs::msg::RigidBodyStamped::SharedPtr
         msg) {
+  RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "[THROTTLED] Executing mocap callback with position: [%5.2f, %5.2f, %5.2f]", msg->rigid_body.pose.position.x, msg->rigid_body.pose.position.y, msg->rigid_body.pose.position.z);
   if (!msg->rigid_body.tracking_valid) {
     // do not publish an invalid message
     return;
