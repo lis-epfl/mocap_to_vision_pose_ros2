@@ -25,6 +25,8 @@ MocapToVisionPose::MocapToVisionPose()
       std::bind(&MocapToVisionPose::MocapCallback, this,
                 std::placeholders::_1));
 
+  RCLCPP_INFO(get_logger(), "Using mocap topic: %s", mocap_topic_);
+
   RCLCPP_INFO(
       get_logger(),
       "MoCap to Vision Pose node initialized with PX4 native ROS2 interface");
