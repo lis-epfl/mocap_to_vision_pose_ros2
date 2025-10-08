@@ -6,6 +6,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <px4_ros2/navigation/experimental/local_position_measurement_interface.hpp>
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 namespace mocap_to_vision_pose {
 
 class MocapToVisionPose : public rclcpp::Node {
@@ -39,6 +40,9 @@ private:
       SharedPtr mocap_sub_;
   // px4 ros2 local position measurement interface
   std::shared_ptr<px4_ros2::LocalPositionMeasurementInterface> position_interface_;
+
+  // Quaternion for frame transformation 
+  Eigen::Quaternionf pi_about_x_quat_; 
 };
 
 } // namespace mocap_to_vision_pose
