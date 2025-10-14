@@ -80,7 +80,7 @@ void MocapToVisionPose::MocapCallback(
                          msg->rigid_body.pose.orientation.q_z);
 
   // set orientation (quaternion)
-  measurement.attitude_quaternion = attitude_quaternion * pi_about_x_quat_; // FLU -> FRD
+  measurement.attitude_quaternion = (attitude_quaternion * pi_about_x_quat_).normalized(); // FLU -> FRD
       
 
   // set orientation variance
