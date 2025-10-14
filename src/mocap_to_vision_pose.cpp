@@ -63,14 +63,7 @@ void MocapToVisionPose::MocapCallback(
   // create local position measurement
   px4_ros2::LocalPositionMeasurement measurement{};
 
-  // correct timestamp for latency
-  double latency_seconds =
-      static_cast<double>(msg->latency_ms) / 1000.0;  // Convert ms to seconds
-  rclcpp::Time corrected_stamp =
-      rclcpp::Time(msg->stamp) -
-      rclcpp::Duration::from_seconds(latency_seconds);
-
-  measurement.timestamp_sample = corrected_stamp;
+  measurement.timestamp_sample = msg->stamp;
 
   // negative value for FLU -> FRD 
   measurement.position_xy = Eigen::Vector2f(msg->rigid_body.pose.position.x,
