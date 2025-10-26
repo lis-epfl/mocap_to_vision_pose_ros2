@@ -30,7 +30,7 @@ MocapToVisionPose::MocapToVisionPose()
   RCLCPP_INFO(
       get_logger(),
       "MoCap to Vision Pose node initialized with PX4 native ROS2 interface");
-  
+
   pi_about_x_quat_ = Eigen::Quaternionf(Eigen::AngleAxisf(EIGEN_PI, Eigen::Vector3f::UnitX()));
 }
 
@@ -65,23 +65,23 @@ void MocapToVisionPose::MocapCallback(
 
   measurement.timestamp_sample = msg->stamp;
 
-  // negative value for FLU -> FRD 
-  measurement.position_xy = Eigen::Vector2f(msg->rigid_body.pose.position.x,
-                                            -msg->rigid_body.pose.position.y); 
+  // negative value for FLU -> FRD
+  measurement.position_xy = Eigen::Vector2f(-msg->rigid_body.pose.position.y,
+                                            -msg->rigid_body.pose.position.x);
   measurement.position_z = -msg->rigid_body.pose.position.z; // - because FLU -> FRD
 
   // set position variance (same for all axes)
   measurement.position_xy_variance = pos_var_;
   measurement.position_z_variance = pos_var_(0); // assuming everything is the same
 
-  auto attitude_quaternion = Eigen::Quaternionf(msg->rigid_body.pose.orientation.q_w,
-                         msg->rigid_body.pose.orientation.q_x,
+  auto attitude_quaternion = Eigen::Quaternionf(-msg->rigid_body.pose.orientation.q_w,
                          msg->rigid_body.pose.orientation.q_y,
+                         msg->rigid_body.pose.orientation.q_x,
                          msg->rigid_body.pose.orientation.q_z);
 
   // set orientation (quaternion)
-  measurement.attitude_quaternion = (attitude_quaternion * pi_about_x_quat_).normalized(); // FLU -> FRD
-      
+  measurement.attitude_quaternion = attitude_quaternion.normalized(); // FLU -> FRD
+
 
   // set orientation variance
   measurement.attitude_variance = att_var_;
@@ -90,3 +90,4 @@ void MocapToVisionPose::MocapCallback(
   position_interface_->update(measurement);
 }
 }  // namespace mocap_to_vision_pose
+
