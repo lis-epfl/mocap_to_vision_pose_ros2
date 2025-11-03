@@ -66,8 +66,8 @@ void MocapToVisionPose::MocapCallback(
   measurement.timestamp_sample = msg->stamp;
 
   // negative value for FLU -> FRD
-  measurement.position_xy = Eigen::Vector2f(-msg->rigid_body.pose.position.y,
-                                            -msg->rigid_body.pose.position.x);
+  measurement.position_xy = Eigen::Vector2f(msg->rigid_body.pose.position.x,
+                                            -msg->rigid_body.pose.position.y);
   measurement.position_z = -msg->rigid_body.pose.position.z; // - because FLU -> FRD
 
   // set position variance (same for all axes)
@@ -75,8 +75,8 @@ void MocapToVisionPose::MocapCallback(
   measurement.position_z_variance = pos_var_(0); // assuming everything is the same
 
   auto attitude_quaternion = Eigen::Quaternionf(-msg->rigid_body.pose.orientation.q_w,
+                         -msg->rigid_body.pose.orientation.q_x,
                          msg->rigid_body.pose.orientation.q_y,
-                         msg->rigid_body.pose.orientation.q_x,
                          msg->rigid_body.pose.orientation.q_z);
 
   // set orientation (quaternion)
